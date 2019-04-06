@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from couchdb import Server
 import json
@@ -50,16 +51,16 @@ def display_image(request):
         attachments_as_json = json.loads(attachments_db)
         attachments = []
         attachments2 = []
-        big_file = images_db.get_attachment(images_doc, 'image3')
+        big_file = images_db.get_attachment(images_doc, 'converted_image')
         img_coll_arr = []
+        # bierzemy wszystkie klucze rozne od converted_image i pobieramy zalaczniki
         for (k, v) in attachments_as_json.items():
             if k != 'converted_image':
                 attachments.append(images_db.get_attachment(images_doc, k))
                 attachments2.append(images_db.get_attachment(images_doc, k))
+        complete_image = [[0 for x in range(8)] for y in range(8)]
 
-        complete_image = [[0 for x in range(len(attachments))] for y in range(len(attachments))]
-
-        for i in range(len(attachments)):
+        for i in range(8):
             with Image.open(attachments[i]) as img:
                 width, height = img.size
                 r, g, b = 0, 0, 0
@@ -72,12 +73,10 @@ def display_image(request):
                 r, g, b = r / area, g / area, b / area
                 img_coll_arr.append((r, g, b))
 
-        # tu dziala
         with Image.open(big_file) as big:
-            width, height = big.size
             rgb_im = big.convert('RGB')
-            for i in range(len(attachments)):
-                for j in range(len(attachments)):
+            for i in range(8):
+                for j in range(8):
                     r, g, b = 0, 0, 0
                     for ix in range(1, 32):
                         for iy in range(1, 32):
@@ -86,7 +85,7 @@ def display_image(request):
                     r, g, b = r / 1024, g / 1024, b / 1024
                     index = 0
                     minimum_from_images = compare_images((r, g, b), img_coll_arr[0])
-                    for ix in range(len(attachments)):
+                    for ix in range(8):
                         temp_min = compare_images((r, g, b), img_coll_arr[ix])
                         if temp_min < minimum_from_images:
                             minimum_from_images = temp_min
@@ -94,18 +93,19 @@ def display_image(request):
                     complete_image[i][j] = index
 
         images = []
-        for i in range(len(attachments2)):
+        for i in range(8):
             image = Image.open(attachments2[i])
             image.thumbnail((32, 32))
             images.append(image)
 
         new_image = Image.new('RGB', (256, 256), 'BLACK')
 
-        for i in range(len(attachments)):
-            for j in range(len(attachments)):
-                new_image.paste(images[complete_image[i][j]], (i * 32, j * 32))
-        new_image.show()
-        return render(request, 'display_image.html')
+        for i in range(8):
+            for j in range(8):
+                new_image.paste(images[complete_image[i][j]], (i * 32, j * 32 + j))
+        response = HttpResponse(content_type="image/png")
+        new_image.save(response, 'PNG')
+        return response
 
 
 def compare_images(a, b):

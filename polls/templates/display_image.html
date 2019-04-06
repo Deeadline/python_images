@@ -6,11 +6,7 @@
 </head>
 <body>
 <div>
-
-    {% if attachment %}
-        <img src="{{ attachment }}" alt="ddd"/>
-        <div>{{ attachment }}</div>
-    {% endif %}
+    <img alt="Embedded image" src="data:image/png;base64,{{ image }}"/>
 </div>
 </body>
 </html>

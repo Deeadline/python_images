@@ -7,6 +7,7 @@
 <body>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    <p>Wgraj 8 obrazków o wymiarach 256x256</p>
     <label>Upload file(s)<input name="photos_multiple" type="file" accept="image/*" multiple/></label>
     <button type="submit">Upload file!</button>
 </form>
