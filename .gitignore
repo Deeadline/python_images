@@ -1,0 +1,7 @@
+/.idea/*.iml
+/.idea/dictionaries/*.xml
+/.idea/*.xml
+/Pictures/__pycache__/*.pyc
+/__pycache__/*.pyc
+/polls/__pycache__/*.pyc
+/polls/migrations/__pycache__/*.pyc
