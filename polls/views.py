@@ -12,29 +12,27 @@ def home(request):
     return render(request, 'home.html')
 
 
-# Dodajemy po kolei obrazki do CouchDB (potrzebne do generowania duzego obrazka0
+# Dodajemy po kolei obrazki do CouchDB (potrzebne do generowania duzego obrazka
 def add_images(request):
     if request.method == 'POST':
         images_db = server['images']
         images_doc = images_db['image']
         multiple_img = request.FILES.getlist('photos_multiple')
-        count = len(multiple_img)
-        for i in range(count):
+        for i in range(len(multiple_img)):
             images_db.put_attachment(images_doc, multiple_img[i], 'image' + str(i), 'image/png')
             images_db.commit()
         return redirect('home')
-    else:
-        form = ImageForm()
+    form = ImageForm()
     return render(request, 'add_images.html', {'form': form})
 
 
 # Dodajemy tutaj jeden obrazek do naszego CouchDB (ten ktory bedziemy generowac z mniejszych obrazkow)
 def add_image(request):
     if request.method == 'POST':
-        form = ImageForm(request.POST, request.FILES)
         images_db = server['images']
         images_doc = images_db['image']
-        images_db.put_attachment(images_doc, form['image'].value(), 'converted_image', 'image/png')
+        image = request.FILES.get('photo')
+        images_db.put_attachment(images_doc, image, 'converted_image', 'image/png')
         images_db.commit()
         return redirect('home')
     else:
@@ -43,6 +41,7 @@ def add_image(request):
 
 
 # Wyswietlamy nasz duzy obrazek stworzony z mniejszych.
+# xd
 def display_image(request):
     if request.method == 'GET':
         images_db = server['images']
@@ -58,9 +57,9 @@ def display_image(request):
             if k != 'converted_image':
                 attachments.append(images_db.get_attachment(images_doc, k))
                 attachments2.append(images_db.get_attachment(images_doc, k))
-        complete_image = [[0 for x in range(8)] for y in range(8)]
+        complete_image = [[0 for x in range(70)] for y in range(70)]
 
-        for i in range(8):
+        for i in range(len(attachments)): #ile obrazkow wgralismy
             with Image.open(attachments[i]) as img:
                 width, height = img.size
                 r, g, b = 0, 0, 0
@@ -75,17 +74,17 @@ def display_image(request):
 
         with Image.open(big_file) as big:
             rgb_im = big.convert('RGB')
-            for i in range(8):
-                for j in range(8):
+            for i in range(70):
+                for j in range(70):
                     r, g, b = 0, 0, 0
-                    for ix in range(1, 32):
-                        for iy in range(1, 32):
-                            tr, tg, tb = rgb_im.getpixel((32 * i + ix, 32 * j + iy))
+                    for ix in range(1, 70):
+                        for iy in range(1, 70):
+                            tr, tg, tb = rgb_im.getpixel((70 * i + ix, 70 * j + iy))
                             r, g, b = r + tr, g + tg, b + tb
-                    r, g, b = r / 1024, g / 1024, b / 1024
+                    r, g, b = r / 4900, g / 4900, b / 4900
                     index = 0
                     minimum_from_images = compare_images((r, g, b), img_coll_arr[0])
-                    for ix in range(8):
+                    for ix in range(32):
                         temp_min = compare_images((r, g, b), img_coll_arr[ix])
                         if temp_min < minimum_from_images:
                             minimum_from_images = temp_min
@@ -93,16 +92,17 @@ def display_image(request):
                     complete_image[i][j] = index
 
         images = []
-        for i in range(8):
+        for i in range(len(attachments)): #tutaj ile obrazkow wgralismy (zeby zrobic kafelki)
             image = Image.open(attachments2[i])
-            image.thumbnail((32, 32))
+            image.thumbnail((70, 70)) #wielkosc kazdego
             images.append(image)
 
-        new_image = Image.new('RGB', (256, 256), 'BLACK')
+        new_image = Image.new('RGB', (4900, 4900), 'BLACK') #rozmiar pliku wyjściowego
 
-        for i in range(8):
-            for j in range(8):
-                new_image.paste(images[complete_image[i][j]], (i * 32, j * 32 + j))
+        for i in range(70): #podajemy rozmiary obrazków tych małych (kafelki)
+            for j in range(70):
+                new_image.paste(images[complete_image[i][j]], (i * 70, j * 70 + j))
+
         response = HttpResponse(content_type="image/png")
         new_image.save(response, 'PNG')
         return response
