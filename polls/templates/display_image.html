@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Main site</title>
-</head>
-<body>
-<div>
-    <img alt="Embedded image" src="data:image/png;base64,{{ image }}"/>
-</div>
-</body>
-</html>
+{% extends 'index.html' %}
+
+{% block title %}Upload image {% endblock %}
+
+{% block content %}
+    <div>
+        <img alt="Embedded image" src={{ image }}/>
+    </div>
+{% endblock %}
