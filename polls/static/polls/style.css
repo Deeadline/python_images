@@ -28,6 +28,7 @@ a {
     text-decoration: none;
     color: #6d6d5d;
 }
+
 a:hover {
     text-decoration: none !important;
 }
@@ -47,4 +48,9 @@ a:hover {
 .nav-link:hover {
     color: #6d6d5d;
     font-weight: 600;
+}
+
+.image-container {
+    width: 500px;
+    height: 500px;
 }

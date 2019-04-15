@@ -3,7 +3,6 @@
 {% block title %}Upload image {% endblock %}
 
 {% block content %}
-    <div>
-        <img alt="Embedded image" src={{ image }}/>
-    </div>
+    <h1 class="p-3">Your mosaic image:</h1>
+    <img alt="Embedded image" src="{{ image }}" class="image-container"/>
 {% endblock %}

@@ -1,11 +1,11 @@
-from django.http import HttpResponse
+import io
+import json
 from django.shortcuts import render, redirect
 from couchdb import Server
-import json
 from PIL import Image
 from .forms import *
 
-server = Server('http://test:test@127.0.0.1:5984/')  # replace test:test with your login:password
+server = Server('http://images_db_user:pass@127.0.0.1:5984/')  # replace test:test with your login:password
 
 
 def home(request):
@@ -59,7 +59,7 @@ def display_image(request):
                 attachments2.append(images_db.get_attachment(images_doc, k))
         complete_image = [[0 for x in range(70)] for y in range(70)]
 
-        for i in range(len(attachments)): #ile obrazkow wgralismy
+        for i in range(len(attachments)):  # ile obrazkow wgralismy
             with Image.open(attachments[i]) as img:
                 width, height = img.size
                 r, g, b = 0, 0, 0
@@ -92,20 +92,20 @@ def display_image(request):
                     complete_image[i][j] = index
 
         images = []
-        for i in range(len(attachments)): #tutaj ile obrazkow wgralismy (zeby zrobic kafelki)
+        for i in range(len(attachments)):  # tutaj ile obrazkow wgralismy (zeby zrobic kafelki)
             image = Image.open(attachments2[i])
-            image.thumbnail((70, 70)) #wielkosc kazdego
+            image.thumbnail((70, 70))  # wielkosc kazdego
             images.append(image)
 
-        new_image = Image.new('RGB', (4900, 4900), 'BLACK') #rozmiar pliku wyjściowego
+        new_image = Image.new('RGB', (4900, 4900), 'BLACK')  # rozmiar pliku wyjściowego
 
-        for i in range(70): #podajemy rozmiary obrazków tych małych (kafelki)
+        for i in range(70):  # podajemy rozmiary obrazków tych małych (kafelki)
             for j in range(70):
                 new_image.paste(images[complete_image[i][j]], (i * 70, j * 70 + j))
-
-        response = HttpResponse(content_type="image/png")
-        new_image.save(response, 'PNG')
-        return response
+        image_io = io.BytesIO()
+        new_image.save(image_io, 'PNG')
+        images_db.put_attachment(images_doc, image_io.getvalue(), 'new_image', 'image/png')
+        return render(request, 'display_image.html', {'image': 'http://localhost:5984/images/image/new_image'})
 
 
 def compare_images(a, b):
