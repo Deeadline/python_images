@@ -6,7 +6,7 @@ from ..utils.couchdb_server import *
 import io
 
 
-def rgb_calculate(file):
+def rgb_calculate(file, file_name):
     image = Image.open(file)
     width, height = image.size
     area = width * height
@@ -18,11 +18,14 @@ def rgb_calculate(file):
             r, g, b = r + tr, g + tg, b + tb
 
     r, g, b = r / area, g / area, b / area
+    mimage = io.BytesIO()
+    image.save(mimage, format='PNG')
     return {
-        'red': r,
-        'green': g,
-        'blue': b
-    }
+               'red': r,
+               'green': g,
+               'blue': b,
+               '_id': file_name
+           }, mimage.getvalue()
 
 
 def resize_image(images_doc: Document, file_name, width, height, is_big=True):
@@ -57,6 +60,7 @@ def big_rgb_calculate(new_image, complete_image, width, height, old_width, old_h
                 area = width * height
                 r, g, b = r / area, g / area, b / area
                 index = 0
+                image_ind = 0
                 view = server.view('images_db/rgb')
                 image_col_arr = view.rows
                 min_compared = compare_images((r, g, b), image_col_arr[0].value)
@@ -64,25 +68,26 @@ def big_rgb_calculate(new_image, complete_image, width, height, old_width, old_h
                     temp_min_compared = compare_images((r, g, b), image_col_arr[ix].value)
                     if temp_min_compared < min_compared:
                         min_compared = temp_min_compared
-                        index = image_col_arr[ix].id  # stare :ix
+                        index = image_col_arr[ix].id
 
                 complete_image[i][j] = index
     return complete_image
 
 
-def get_images_from_view(view: ViewResults, width, height):
-    images = []
+def get_images_from_view(view: ViewResults, width, height, complete_image):
+    temporary_list = list(dict.fromkeys([item for sublist in complete_image for item in sublist]))
+    images = dict()
     rows = view.rows
     for i in range(0, view.total_rows):
         single_row_id = rows[i].id
-        attachment = server.get_attachment(single_row_id, 'image_{0}_{1}.png'.format(width, height))
-        if attachment is None:
-            images_doc = server[single_row_id]
-            print('images_doc:{0}'.format(images_doc))
-            new_image_file = resize_image(images_doc, 'image', width, height, False)
-            attachment = server.get_attachment(images_doc, new_image_file)
-        image = Image.open(attachment)
-        images.append(image)
+        if single_row_id in temporary_list:
+            attachment = server.get_attachment(single_row_id, 'image_{0}_{1}.png'.format(width, height))
+            if attachment is None:
+                images_doc = server[single_row_id]
+                _, _, new_image_file = resize_image(images_doc, 'image', width, height, False)
+                attachment = server.get_attachment(images_doc, new_image_file)
+            image = Image.open(attachment)
+            images[str(single_row_id)] = image
     return images
 
 

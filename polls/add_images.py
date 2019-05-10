@@ -8,10 +8,11 @@ def add_images(request):
         multiple_images = request.FILES.getlist('multiple_images')  # bierzemy wszystkie pliki
         images_count = len(multiple_images)  # przypisujemy sobie ile mamy plikow do wgrania
         for i in range(images_count):  # dla kazdego obrazka
-            print('multiple_images[{0}]:{1}'.format(i, multiple_images[i]))
-            rgb = rgb_calculate(multiple_images[i])  # obliczamy sobie rgb
+            file_name = 'image{0}'.format(i)
+            rgb, img = rgb_calculate(multiple_images[i], file_name)  # obliczamy sobie rgb
             server.save(rgb)  # zapisujemy sobie nasz dokument
-            server.put_attachment(rgb, multiple_images[i], 'image.png',
+            server.put_attachment(rgb, img, 'image.png',
                                   'image/png')  # i dodajemy do niego jeszcze nasze zdjecie
+            server.commit()
         return redirect('add_images')
     return render(request, 'add_images.html')

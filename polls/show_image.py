@@ -16,22 +16,24 @@ def show_image(request):
             complete_image = [[0 for _ in range(old_width)] for _ in range(old_height)]
             new_image = server.get_attachment(images_doc, new_image_name)
 
-            complete_image = big_rgb_calculate(new_image, complete_image, width, height, old_width, old_height)
+            complete_image = big_rgb_calculate(new_image, complete_image, width, height,
+                                               old_width, old_height)
             print('complete_image:{0}'.format(complete_image))
 
             view = server.view('images_db/rgb')
 
-            images = get_images_from_view(view, width, height)
-
+            images = get_images_from_view(view, width, height, complete_image)
+            print('images:{0}'.format(images))
+            ia = Image.new('RGB', (old_width * width, old_height * height))
             for i in range(0, old_width):
                 for j in range(0, old_height):
-                    new_image.paste(images[complete_image[i][j]], (i * width, j * height + j))
+                    ia.paste(images[complete_image[i][j]], (i * width, j * height + j))
 
             image_io = io.BytesIO()
-            new_image.save(image_io, 'PNG')
+            ia.save(image_io, 'PNG')
             server.put_attachment(images_doc, image_io.getvalue(), 'mosaic', 'image/png')
             return render(request, 'show_image.html',
-                          {'image': 'http://localhost:5984/images_db/big_image/mosaic', 'has_content': True})
+                          {'image': 'http://localhost:5984/images/big_image/mosaic', 'has_content': True})
     else:
         form = ShowImageForm()
         return render(request, 'show_image.html', {'has_content': False, 'form': form})
