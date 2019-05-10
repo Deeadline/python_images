@@ -1,0 +1,26 @@
+{% extends 'index.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}Mosaic image {% endblock %}
+
+{% block content %}
+    {% if has_content is True %}
+        <h1 class="p-3">Your mosaic image:</h1>
+        <img alt="Embedded image" src="{{ image }}" class="image-container"/>
+
+    {% else %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.width|as_crispy_field }}
+            </div>
+            <div class="form-group">
+                {{ form.height|as_crispy_field }}
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-outline-primary p-2">Show your mosaic file!</button>
+            </div>
+        </form>
+    {% endif %}
+{% endblock %}
