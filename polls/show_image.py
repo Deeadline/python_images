@@ -18,12 +18,10 @@ def show_image(request):
 
             complete_image = big_rgb_calculate(new_image, complete_image, width, height,
                                                old_width, old_height)
-            print('complete_image:{0}'.format(complete_image))
 
             view = server.view('images_db/rgb')
 
             images = get_images_from_view(view, width, height, complete_image)
-            print('images:{0}'.format(images))
             ia = Image.new('RGB', (old_width * width, old_height * height))
             for i in range(0, old_width):
                 for j in range(0, old_height):

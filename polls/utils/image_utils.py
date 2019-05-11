@@ -18,14 +18,14 @@ def rgb_calculate(file, file_name):
             r, g, b = r + tr, g + tg, b + tb
 
     r, g, b = r / area, g / area, b / area
-    mimage = io.BytesIO()
-    image.save(mimage, format='PNG')
+    image_in_bytes = io.BytesIO()
+    image.save(image_in_bytes, format='PNG')
     return {
                'red': r,
                'green': g,
                'blue': b,
                '_id': file_name
-           }, mimage.getvalue()
+           }, image_in_bytes.getvalue()
 
 
 def resize_image(images_doc: Document, file_name, width, height, is_big=True):
@@ -52,15 +52,13 @@ def big_rgb_calculate(new_image, complete_image, width, height, old_width, old_h
         image_rgb = image.convert('RGB')
         for i in range(old_width):
             for j in range(old_height):
-                r, g, b = 0, 0, 0
+                r, g, b, index = 0, 0, 0, 0
                 for ix in range(1, width):
                     for iy in range(1, height):
                         tr, tg, tb = image_rgb.getpixel((width * i + ix, height * j + iy))
                         r, g, b = r + tr, g + tg, b + tb
                 area = width * height
                 r, g, b = r / area, g / area, b / area
-                index = 0
-                image_ind = 0
                 view = server.view('images_db/rgb')
                 image_col_arr = view.rows
                 min_compared = compare_images((r, g, b), image_col_arr[0].value)
@@ -75,7 +73,8 @@ def big_rgb_calculate(new_image, complete_image, width, height, old_width, old_h
 
 
 def get_images_from_view(view: ViewResults, width, height, complete_image):
-    temporary_list = list(dict.fromkeys([item for sublist in complete_image for item in sublist]))
+    flatten_array = [item for sublist in complete_image for item in sublist]
+    temporary_list = list(dict.fromkeys(flatten_array))
     images = dict()
     rows = view.rows
     for i in range(0, view.total_rows):
