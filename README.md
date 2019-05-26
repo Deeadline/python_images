@@ -1,6 +1,6 @@
 # python_images
 
-## Aplikacja internetowa, do komunikacji z CouchDB.
+## Aplikacja internetowa, do komunikacji z CouchDB umożliwiająca generowanie mozaiki ze zdjęć.
 
 ### Funkcjonalności
 1. (1 zakładka) Wgrywanie zdjęć, które bedą nam służyć jako pojedyncze kafelki. Podczas zapisu do CouchDB jest obliczane średnie rgb dla każdego z nich 
