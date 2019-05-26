@@ -50,8 +50,8 @@ def resize_image(images_doc: Document, file_name, width, height, is_big=True):
 def big_rgb_calculate(new_image, complete_image, width, height, old_width, old_height):
     with Image.open(new_image) as image:
         image_rgb = image.convert('RGB')
-        for i in range(old_width):
-            for j in range(old_height):
+        for i in range(0, old_width):
+            for j in range(0, old_height):
                 r, g, b, index = 0, 0, 0, 0
                 for ix in range(1, width):
                     for iy in range(1, height):
@@ -80,7 +80,8 @@ def get_images_from_view(view: ViewResults, width, height, complete_image):
     for i in range(0, view.total_rows):
         single_row_id = rows[i].id
         if single_row_id in temporary_list:
-            attachment = server.get_attachment(single_row_id, 'image_{0}_{1}.png'.format(width, height))
+            image_name = 'image_{0}_{1}.png'.format(width, height)
+            attachment = server.get_attachment(single_row_id, image_name)
             if attachment is None:
                 images_doc = server[single_row_id]
                 _, _, new_image_file = resize_image(images_doc, 'image', width, height, False)

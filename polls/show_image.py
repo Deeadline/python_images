@@ -8,12 +8,14 @@ def show_image(request):
     if request.method == 'POST':
         form = ShowImageForm(request.POST)
         if form.is_valid():
-            width, height = int(form.cleaned_data['width']), int(form.cleaned_data['height'])
+            width = int(form.cleaned_data['width'])
+            height = width
             images_doc = server['big_image']
+
             # zmieniamy rozmiar naszego duzego obrazka
             old_width, old_height, new_image_name = resize_image(images_doc, 'big_image', width, height)
 
-            complete_image = [[0 for _ in range(old_width)] for _ in range(old_height)]
+            complete_image = [[0 for _ in range(old_height)] for _ in range(old_width)]
             new_image = server.get_attachment(images_doc, new_image_name)
 
             complete_image = big_rgb_calculate(new_image, complete_image, width, height,
@@ -25,7 +27,8 @@ def show_image(request):
             ia = Image.new('RGB', (old_width * width, old_height * height))
             for i in range(0, old_width):
                 for j in range(0, old_height):
-                    ia.paste(images[complete_image[i][j]], (i * width, j * height + j))
+                    if complete_image[i][j] != 0:
+                        ia.paste(images[complete_image[i][j]], (i * width, j * height + j))
 
             image_io = io.BytesIO()
             ia.save(image_io, 'PNG')
